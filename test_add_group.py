@@ -12,7 +12,7 @@ def is_alert_present(wd):
 
 class test_add_group(unittest.TestCase):
     def setUp(self):
-        self.wd = WebDriver()
+        self.wd = WebDriver(capabilities={"marionette": False})
         self.wd.implicitly_wait(60)
     
     def test_test_add_group(self):
@@ -37,7 +37,7 @@ class test_add_group(unittest.TestCase):
         wd.find_element_by_name("group_header").send_keys("header1")
         wd.find_element_by_name("group_footer").click()
         wd.find_element_by_name("group_footer").clear()
-        wd.find_element_by_name("group_footer").send_keys("header2")
+        wd.find_element_by_name("group_footer").send_keys("footer1")
         wd.find_element_by_name("submit").click()
         wd.find_element_by_link_text("group page").click()
         wd.find_element_by_link_text("Logout").click()
