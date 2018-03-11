@@ -8,7 +8,7 @@ class GroupHelper:
 
     def create(self, group):
         wd = self.app.wd
-        self.app.open_groups_page()
+        self.open_groups_page()
         wd.find_element_by_name("group_name").click()
         # fill group form
         wd.find_element_by_name("group_name").clear()
