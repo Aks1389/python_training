@@ -48,3 +48,10 @@ class ContactHelper:
         wd = self.app.wd
         self.app.go_to_main_page(True)
         assert len(wd.find_elements_by_xpath("//table//tr[@name='entry']")) > 0
+
+    def delete_first_contact(self):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        wd.find_element_by_name("selected[]").click()
+        wd.find_element_by_xpath("//input[@value = 'Delete']").click()
+        self.app.handleAlert("Delete 1 addresses?", "OK")
