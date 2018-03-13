@@ -18,7 +18,7 @@ class ContactHelper:
         wd.find_element_by_name("lastname").clear()
         wd.find_element_by_name("lastname").send_keys(contact.last_name)
 
-        birthday = self.app.processBirthdayStr(contact.birthday)
+        birthday = self.app.processDateStr(contact.birthday)
         if not wd.find_element_by_xpath("//div[@id='content']/form/select[@name='bday']/option[text()='" + birthday[
             'day'] + "']").is_selected():
             wd.find_element_by_xpath(
@@ -47,11 +47,18 @@ class ContactHelper:
     def checkIfContactAdded(self):
         wd = self.app.wd
         self.app.go_to_main_page(True)
-        assert len(wd.find_elements_by_xpath("//table//tr[@name='entry']")) > 0
+        assert len(wd.find_elements_by_xpath("//table//tr[@name='entry']")) > 0, \
+            "Contact wasn't added"
 
-    def delete_first_contact(self):
+    def delete(self, index):
         wd = self.app.wd
         self.app.go_to_main_page(True)
-        wd.find_element_by_name("selected[]").click()
+        self.select_contact_by_index(index)
         wd.find_element_by_xpath("//input[@value = 'Delete']").click()
         self.app.handleAlert("Delete 1 addresses?", "OK")
+
+    def select_contact_by_index(self, index):
+        wd = self.app.wd
+        contact_list = wd.find_elements_by_xpath("//table//tr[@name='entry']")
+        assert len(contact_list) >= index , "Number of contacts is less than index"
+        contact_list[index-1].find_element_by_xpath(".//input[@name = 'selected[]']").click()
