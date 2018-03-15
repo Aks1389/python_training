@@ -5,10 +5,15 @@ class ContactHelper:
     def add(self, contact):
         wd = self.app.wd
         wd.find_element_by_link_text("add new").click()
-        self.fill_contact_info_fields(contact)
+        self.fill_fields(contact)
         wd.find_element_by_xpath("//div[@id='content']/form/input[@value='Enter']").click()
 
-    def fill_contact_info_fields(self, contact):
+    def add_empty(self):
+        wd = self.app.wd
+        wd.find_element_by_link_text("add new").click()
+        wd.find_element_by_xpath("//div[@id='content']/form/input[@value='Enter']").click()
+
+    def fill_fields(self, contact):
         wd = self.app.wd
         wd.find_element_by_name("firstname").click()
         wd.find_element_by_name("firstname").clear()
@@ -50,6 +55,12 @@ class ContactHelper:
         assert len(wd.find_elements_by_xpath("//table//tr[@name='entry']")) > 0, \
             "Contact wasn't added"
 
+    def get_contacts_number(self):
+        wd = self.app.wd
+        number = len(wd.find_elements_by_xpath("//table//tr[@name='entry']"))
+        print("Number of contacts: " + str(number))
+        return number
+
     def delete(self, index):
         wd = self.app.wd
         self.app.go_to_main_page(True)
@@ -62,3 +73,16 @@ class ContactHelper:
         contact_list = wd.find_elements_by_xpath("//table//tr[@name='entry']")
         assert len(contact_list) >= index , "Number of contacts is less than index"
         contact_list[index-1].find_element_by_xpath(".//input[@name = 'selected[]']").click()
+
+    def update(self, index, contact):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        self.open_contact_for_editing(index)
+        self.fill_fields(contact)
+        wd.find_element_by_xpath("//input[@name = 'update']").click()
+
+    def open_contact_for_editing(self, index):
+        wd = self.app.wd
+        contact_list = wd.find_elements_by_xpath("//table//tr[@name='entry']")
+        assert len(contact_list) >= index, "Number of contacts is less than index"
+        wd.find_element_by_xpath("//table//tr["+str(index+1)+"]//a[contains(@href, 'edit.php')]").click()

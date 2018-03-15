@@ -7,3 +7,9 @@ def test_test_add_contact(app):
                             "address1", "247-18-45", "email@email.com", "companyName21"))
     app.hm.contact.checkIfContactAdded()
     app.hm.session.logout()
+
+def test_test_add_empty_contact(app):
+    app.hm.session.login(username='admin', password='secret')
+    app.hm.contact.add_empty()
+    app.hm.contact.checkIfContactAdded()
+    app.hm.session.logout()

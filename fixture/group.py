@@ -45,6 +45,7 @@ class GroupHelper:
         wd = self.app.wd
         self.open_groups_page()
         groups_before_del = self.get_groups_number()
+        assert groups_before_del > 0 , "There is no group to be deleted"
         wd.find_element_by_name("selected[]").click()
         wd.find_element_by_xpath("//input[@value = 'Delete group(s)']").click()
         self.open_groups_page()
