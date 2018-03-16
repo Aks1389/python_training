@@ -2,17 +2,18 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.webdriver import WebDriver
-from fixture.helpers_manager import HelpersManager
+from fixture.session import SessionHelper
+from fixture.contact import ContactHelper
+from fixture.group import GroupHelper
 
 class Application:
     def __init__(self):
         self.wd = WebDriver(capabilities={"marionette": False})
         self.wd.implicitly_wait(20)
-        self.hm = HelpersManager(self)
-        """hm = HelpersManager(self)
-        self.session = hm.session
-        self.contact = hm.contact
-        self.group = hm.group"""
+
+        self.session = SessionHelper(self)
+        self.contact = ContactHelper(self)
+        self.group = GroupHelper(self)
 
     def go_to_main_page(self, byLink):
         wd = self.wd
