@@ -75,11 +75,12 @@ class ContactHelper:
         assert len(contact_list) >= index, "Number of contacts is less than index"
         wd.find_element_by_xpath("//table//tr["+str(index+1)+"]//a[contains(@href, 'edit.php')]").click()
 
-    def set_field_value(self, web_element, value):
+    def set_field_value(self, web_element, field_obj):
         wd = self.app.wd
-        web_element.click()
-        web_element.clear()
-        web_element.send_keys(value)
+        if field_obj is not None:
+            web_element.click()
+            web_element.clear()
+            web_element.send_keys(field_obj)
 
     def set_combobox_field_value(self, web_element, value):
         if not web_element.is_selected():

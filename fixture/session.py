@@ -17,3 +17,26 @@ class SessionHelper:
     def logout(self):
         wd = self.app.wd
         wd.find_element_by_link_text("Logout").click()
+
+    def ensure_logout(self):
+        wd = self.app.wd
+        if self.is_logged_in():
+            self.logout()
+
+    def is_logged_in(self):
+        wd = self.app.wd
+        return len(wd.find_elements_by_xpath("//form[@name = 'logout']")) > 0
+
+    def is_logged_in_as_user(self, username):
+        wd = self.app.wd
+        user_name_element = wd.find_element_by_xpath("//form[@class = 'header']/b")
+        return user_name_element.text == "("+username+")"
+
+    def ensure_login(self, username, password):
+        dw = self.app.wd
+        if self.is_logged_in():
+            if self.is_logged_in_as_user(username):
+                return
+            else:
+                self.logout()
+        self.login(username, password)

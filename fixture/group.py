@@ -36,12 +36,12 @@ class GroupHelper:
         self.set_field_value("group_header", group.header)
         self.set_field_value("group_footer", group.footer)
 
-    def set_field_value(self, field_name, group):
+    def set_field_value(self, field_name, field_obj):
         wd = self.app.wd
-        if group.name is not None:
+        if field_obj is not None:
             wd.find_element_by_name(field_name).click()
             wd.find_element_by_name(field_name).clear()
-            wd.find_element_by_name(field_name).send_keys(group.name)
+            wd.find_element_by_name(field_name).send_keys(field_obj)
 
     def delete(self, index):
         wd = self.app.wd
