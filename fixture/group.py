@@ -1,3 +1,5 @@
+from model.group import Group
+
 class GroupHelper:
     def __init__(self, app):
         self.app = app
@@ -63,3 +65,9 @@ class GroupHelper:
         number = len(wd.find_elements_by_xpath("//span[@class = 'group']"))
         print("Number of groups: " + str(number))
         return number
+
+    def create_if_absent(self):
+        self.open_groups_page()
+        if self.get_groups_number() == 0:
+            self.create(Group(name="testGroup"))
+            self.open_groups_page()

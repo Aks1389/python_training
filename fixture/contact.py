@@ -1,3 +1,5 @@
+from model.contact import Contact
+
 class ContactHelper:
     def __init__(self, app):
         self.app = app
@@ -20,17 +22,14 @@ class ContactHelper:
 
         birthday = self.app.processDateStr(contact.birthday)
 
-        cm_box_element = wd.find_element_by_xpath("//div[@id='content']"
-                                                  "/form/select[@name='bday']"
-                                                  "/option[text()='" + birthday['day'] + "']")
+        cm_box_element = wd.find_element_by_xpath("//div[@id='content']/form/select[@name='bday']")
         self.set_combobox_field_value(cm_box_element, birthday['day'])
 
-        cm_box_element = wd.find_element_by_xpath("//div[@id='content']"
-                                                  "/form/select[@name='bmonth']"
-                                                  "//option[text()='" + birthday['month'] + "']")
-        self.set_combobox_field_value(cm_box_element, birthday['day'])
+        cm_box_element = wd.find_element_by_xpath("//div[@id='content']/form/select[@name='bmonth']")
+        self.set_combobox_field_value(cm_box_element, birthday['month'])
 
-        self.set_field_value(wd.find_element_by_name("byear"), birthday['year'])
+        cm_box_element = wd.find_element_by_xpath("//div[@id='content']/form/input[@name='byear']")
+        self.set_field_value(cm_box_element, birthday['year'])
 
         self.set_field_value(wd.find_element_by_name("company"), contact.company)
         self.set_field_value(wd.find_element_by_name("address"), contact.address)
@@ -83,5 +82,12 @@ class ContactHelper:
             web_element.send_keys(field_obj)
 
     def set_combobox_field_value(self, web_element, value):
-        if not web_element.is_selected():
-            web_element.click()
+        if value is not None:
+            option = web_element.find_element_by_xpath("./option[text()='"+value+"']")
+            if not option.is_selected():
+                option.click()
+
+    def create_if_absent(self):
+        self.app.go_to_main_page(True)
+        if self.get_contacts_number() == 0:
+            self.add(Contact("userFirstName", "userLastName"))

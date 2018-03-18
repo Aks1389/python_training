@@ -48,8 +48,13 @@ class Application:
         self.wd.quit()
 
     def processDateStr(self, birthdayStr):
-        bd_string = str.split(birthdayStr, '-')
-        birthdayDict = {'day' : bd_string[0],
-                        'month' : bd_string[1],
-                        'year' : bd_string[2]}
+        if birthdayStr is not None:
+            bd_string = str.split(birthdayStr, '-')
+            birthdayDict = {'day' : bd_string[0],
+                            'month' : bd_string[1],
+                            'year' : bd_string[2]}
+        else:
+            birthdayDict = {'day': None,
+                            'month': None,
+                            'year': None}
         return birthdayDict
