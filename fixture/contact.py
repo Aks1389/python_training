@@ -15,39 +15,27 @@ class ContactHelper:
 
     def fill_fields(self, contact):
         wd = self.app.wd
-        wd.find_element_by_name("firstname").click()
-        wd.find_element_by_name("firstname").clear()
-        wd.find_element_by_name("firstname").send_keys(contact.first_name)
-
-        wd.find_element_by_name("lastname").click()
-        wd.find_element_by_name("lastname").clear()
-        wd.find_element_by_name("lastname").send_keys(contact.last_name)
+        self.set_field_value(wd.find_element_by_name("firstname"), contact.first_name)
+        self.set_field_value(wd.find_element_by_name("lastname"), contact.last_name)
 
         birthday = self.app.processDateStr(contact.birthday)
-        if not wd.find_element_by_xpath("//div[@id='content']/form/select[@name='bday']/option[text()='" + birthday[
-            'day'] + "']").is_selected():
-            wd.find_element_by_xpath(
-                "//div[@id='content']/form/select[@name='bday']//option[text()='" + birthday['day'] + "']").click()
-        if not wd.find_element_by_xpath("//div[@id='content']/form/select[@name='bmonth']//option[text()='" + birthday[
-            'month'] + "']").is_selected():
-            wd.find_element_by_xpath(
-                "//div[@id='content']/form/select[@name='bmonth']//option[text()='" + birthday['month'] + "']").click()
-        wd.find_element_by_name("byear").click()
-        wd.find_element_by_name("byear").clear()
-        wd.find_element_by_name("byear").send_keys(birthday['year'])
 
-        wd.find_element_by_name("company").click()
-        wd.find_element_by_name("company").clear()
-        wd.find_element_by_name("company").send_keys(contact.company)
-        wd.find_element_by_name("address").click()
-        wd.find_element_by_name("address").clear()
-        wd.find_element_by_name("address").send_keys(contact.address)
-        wd.find_element_by_name("mobile").click()
-        wd.find_element_by_name("mobile").clear()
-        wd.find_element_by_name("mobile").send_keys(contact.phone)
-        wd.find_element_by_name("email").click()
-        wd.find_element_by_name("email").clear()
-        wd.find_element_by_name("email").send_keys(contact.email)
+        cm_box_element = wd.find_element_by_xpath("//div[@id='content']"
+                                                  "/form/select[@name='bday']"
+                                                  "/option[text()='" + birthday['day'] + "']")
+        self.set_combobox_field_value(cm_box_element, birthday['day'])
+
+        cm_box_element = wd.find_element_by_xpath("//div[@id='content']"
+                                                  "/form/select[@name='bmonth']"
+                                                  "//option[text()='" + birthday['month'] + "']")
+        self.set_combobox_field_value(cm_box_element, birthday['day'])
+
+        self.set_field_value(wd.find_element_by_name("byear"), birthday['year'])
+
+        self.set_field_value(wd.find_element_by_name("company"), contact.company)
+        self.set_field_value(wd.find_element_by_name("address"), contact.address)
+        self.set_field_value(wd.find_element_by_name("mobile"), contact.phone)
+        self.set_field_value(wd.find_element_by_name("email"), contact.email)
 
     def checkIfContactAdded(self):
         wd = self.app.wd
@@ -86,3 +74,13 @@ class ContactHelper:
         contact_list = wd.find_elements_by_xpath("//table//tr[@name='entry']")
         assert len(contact_list) >= index, "Number of contacts is less than index"
         wd.find_element_by_xpath("//table//tr["+str(index+1)+"]//a[contains(@href, 'edit.php')]").click()
+
+    def set_field_value(self, web_element, value):
+        wd = self.app.wd
+        web_element.click()
+        web_element.clear()
+        web_element.send_keys(value)
+
+    def set_combobox_field_value(self, web_element, value):
+        if not web_element.is_selected():
+            web_element.click()

@@ -26,30 +26,31 @@ class GroupHelper:
     def select_group_by_index(self, index):
         wd = self.app.wd
         groups_list = wd.find_elements_by_xpath("//input[@type = 'checkbox']")
-        assert (len(groups_list) >= index)
+        assert (len(groups_list) >= index), "Number of groups is less than index"
         groups_list[index-1].click()
 
     def fill_fields(self, group):
         # fill group form
         wd = self.app.wd
-        wd.find_element_by_name("group_name").clear()
-        wd.find_element_by_name("group_name").send_keys(group.name)
-        wd.find_element_by_name("group_header").click()
-        wd.find_element_by_name("group_header").clear()
-        wd.find_element_by_name("group_header").send_keys(group.header)
-        wd.find_element_by_name("group_footer").click()
-        wd.find_element_by_name("group_footer").clear()
-        wd.find_element_by_name("group_footer").send_keys(group.footer)
+        self.set_field_value("group_name", group.name)
+        self.set_field_value("group_header", group.header)
+        self.set_field_value("group_footer", group.footer)
 
-    def delete_first_group(self):
+    def set_field_value(self, field_name, group):
+        wd = self.app.wd
+        if group.name is not None:
+            wd.find_element_by_name(field_name).click()
+            wd.find_element_by_name(field_name).clear()
+            wd.find_element_by_name(field_name).send_keys(group.name)
+
+    def delete(self, index):
         wd = self.app.wd
         self.open_groups_page()
         groups_before_del = self.get_groups_number()
-        assert groups_before_del > 0 , "There is no group to be deleted"
-        wd.find_element_by_name("selected[]").click()
+        self.select_group_by_index(1)
         wd.find_element_by_xpath("//input[@value = 'Delete group(s)']").click()
         self.open_groups_page()
-        assert self.get_groups_number() == groups_before_del-1
+        assert self.get_groups_number() == groups_before_del-1, "Group wasn't deleted"
 
 
     def open_groups_page(self):
