@@ -9,7 +9,6 @@ from fixture.group import GroupHelper
 class Application:
     def __init__(self):
         self.wd = WebDriver(capabilities={"marionette": False})
-        self.wd.implicitly_wait(20)
 
         self.session = SessionHelper(self)
         self.contact = ContactHelper(self)
@@ -24,10 +23,11 @@ class Application:
 
     def go_to_main_page(self, byLink):
         wd = self.wd
-        if byLink:
-            wd.find_element_by_link_text("home").click()
-        else:
-            wd.get("http://localhost/addressbook/")
+        if not wd.current_url.endswith("addressbook/"):
+            if byLink:
+                wd.find_element_by_link_text("home").click()
+            else:
+                wd.get("http://localhost/addressbook/")
 
     def handleAlert(self, expected_text, action):
         wd = self.wd

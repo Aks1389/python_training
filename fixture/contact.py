@@ -6,12 +6,14 @@ class ContactHelper:
 
     def add(self, contact):
         wd = self.app.wd
+        self.app.go_to_main_page(True)
         wd.find_element_by_link_text("add new").click()
         self.fill_fields(contact)
         wd.find_element_by_xpath("//div[@id='content']/form/input[@value='Enter']").click()
 
     def add_empty(self):
         wd = self.app.wd
+        self.app.go_to_main_page(True)
         wd.find_element_by_link_text("add new").click()
         wd.find_element_by_xpath("//div[@id='content']/form/input[@value='Enter']").click()
 
