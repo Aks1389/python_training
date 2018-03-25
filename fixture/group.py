@@ -10,20 +10,38 @@ class GroupHelper:
 
     def create(self, group):
         wd = self.app.wd
-        self.open_groups_page()
+        old_groups = self.get_group_list()
+
         wd.find_element_by_name("new").click()
         wd.find_element_by_name("group_name").click()
         self.fill_fields(group)
         # submit group creating
         wd.find_element_by_name("submit").click()
 
+        new_groups = self.get_group_list()
+        assert len(old_groups) + 1 == len(new_groups)
+        old_groups.append(group)
+        assert sorted(old_groups, key=Group.id_or_max) == sorted(new_groups, key=Group.id_or_max)
+
     def update(self, index, group):
         wd = self.app.wd
         self.open_groups_page()
+
+        #preparation
+        old_groups = self.get_group_list()
+        group.id = old_groups[index-1].id
+
+        #updating
         self.select_group_by_index(index)
         wd.find_element_by_xpath("//input[@name = 'edit']").click()
         self.fill_fields(group)
         wd.find_element_by_xpath("//input[@name = 'update']").click()
+
+        #checking
+        new_groups = self.get_group_list()
+        assert len(old_groups) == len(new_groups)
+        old_groups[index-1] = group
+        assert sorted(old_groups, key=Group.id_or_max) == sorted(new_groups, key=Group.id_or_max)
 
     def select_group_by_index(self, index):
         wd = self.app.wd
@@ -47,13 +65,15 @@ class GroupHelper:
 
     def delete(self, index):
         wd = self.app.wd
-        self.open_groups_page()
-        groups_before_del = self.get_groups_number()
-        self.select_group_by_index(1)
-        wd.find_element_by_xpath("//input[@value = 'Delete group(s)']").click()
-        self.open_groups_page()
-        assert self.get_groups_number() == groups_before_del-1, "Group wasn't deleted"
+        groups_before_del = self.get_group_list()
 
+        self.select_group_by_index(index)
+        wd.find_element_by_xpath("//input[@value = 'Delete group(s)']").click()
+
+        groups_after_del = self.get_group_list()
+        assert len(groups_after_del) == len(groups_before_del)-1, "Group wasn't deleted"
+        del groups_before_del[index - 1]
+        assert sorted(groups_before_del, key=Group.id_or_max) == sorted(groups_after_del, key=Group.id_or_max)
 
     def open_groups_page(self):
         # open groups page
@@ -72,3 +92,14 @@ class GroupHelper:
         if self.get_groups_number() == 0:
             self.create(Group(name="testGroup"))
             self.open_groups_page()
+
+    def get_group_list(self):
+        wd = self.app.wd
+        self.open_groups_page()
+        group_list = []
+        for element in wd.find_elements_by_xpath("//span[@class = 'group']"):
+            text = element.text
+            id = element.find_element_by_xpath(".//input[@type='checkbox']").get_attribute("value")
+            group_list.append(Group(name=text, id=id))
+        print("Groups list: " + str(group_list))
+        return group_list

@@ -6,16 +6,26 @@ class ContactHelper:
 
     def add(self, contact):
         wd = self.app.wd
-        self.app.go_to_main_page(True)
+        old_contacts_list = self.get_contact_list()
+
         wd.find_element_by_link_text("add new").click()
-        self.fill_fields(contact)
+        if contact is not None:
+            self.fill_fields(contact)
+        else:
+            contact = Contact(first_name="", last_name="", birthday="", address="",
+                 phone="", email="", company="", id=None)
         wd.find_element_by_xpath("//div[@id='content']/form/input[@value='Enter']").click()
+
+        new_contacts_list = self.get_contact_list()
+        assert len(old_contacts_list) + 1 == len(new_contacts_list), \
+            "Contact wasn't added"
+        old_contacts_list.append(contact)
+        assert sorted(old_contacts_list, key=Contact.id_or_max) == sorted(new_contacts_list, key=Contact.id_or_max), \
+            "Contact wasn't added"
 
     def add_empty(self):
         wd = self.app.wd
-        self.app.go_to_main_page(True)
-        wd.find_element_by_link_text("add new").click()
-        wd.find_element_by_xpath("//div[@id='content']/form/input[@value='Enter']").click()
+        self.add(None)
 
     def fill_fields(self, contact):
         wd = self.app.wd
@@ -52,10 +62,18 @@ class ContactHelper:
 
     def delete(self, index):
         wd = self.app.wd
-        self.app.go_to_main_page(True)
+        contacts_before_del = self.get_contact_list()
+
         self.select_contact_by_index(index)
         wd.find_element_by_xpath("//input[@value = 'Delete']").click()
         self.app.handleAlert("Delete 1 addresses?", "OK")
+
+        contacts_after_del = self.get_contact_list()
+        assert len(contacts_before_del)-1 == len(contacts_after_del), \
+            "Number of contacts wasn't changed after deletion"
+        del contacts_before_del[index - 1]
+        assert sorted(contacts_before_del, key=Contact.id_or_max) == sorted(contacts_after_del, key=Contact.id_or_max), \
+            "Number of contacts wasn't changed after deletion"
 
     def select_contact_by_index(self, index):
         wd = self.app.wd
@@ -65,10 +83,22 @@ class ContactHelper:
 
     def update(self, index, contact):
         wd = self.app.wd
-        self.app.go_to_main_page(True)
+        #preparation
+        old_contacts_list = self.get_contact_list()
+        contact.id = old_contacts_list[index - 1].id
+
+        #updating
         self.open_contact_for_editing(index)
         self.fill_fields(contact)
         wd.find_element_by_xpath("//input[@name = 'update']").click()
+
+        #checking
+        new_contacts_list = self.get_contact_list()
+        assert len(old_contacts_list) == len(new_contacts_list), \
+            "Number of contacts changed after contact updating"
+        old_contacts_list[index - 1] = contact
+        assert sorted(old_contacts_list, key=Contact.id_or_max) == sorted(new_contacts_list, key=Contact.id_or_max), \
+            "Number of contacts changed after contact updating"
 
     def open_contact_for_editing(self, index):
         wd = self.app.wd
@@ -93,3 +123,26 @@ class ContactHelper:
         self.app.go_to_main_page(True)
         if self.get_contacts_number() == 0:
             self.add(Contact("userFirstName", "userLastName"))
+
+    def get_contact_list(self):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        contacts_list = []
+        for row in wd.find_elements_by_xpath("//table//tr[@name='entry']"):
+            last_name = row.find_element_by_xpath(".//td[" + str(self.get_column_index("Last name")+1) + "]").text
+            first_name = row.find_element_by_xpath(".//td["+ str(self.get_column_index("First name")+1)+"]").text
+            id = row.find_element_by_xpath(".//input[@type='checkbox']").get_attribute("value")
+            contacts_list.append(Contact(last_name = last_name, first_name = first_name, id = id))
+        print("Contacts list: " + str(contacts_list))
+        return contacts_list
+
+    def get_column_index(self, column_name):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        index = -1
+        columns = wd.find_elements_by_xpath("//table//th")
+        for i in range(len(columns)):
+            if columns[i].text == column_name:
+                index = i
+                break
+        return index
