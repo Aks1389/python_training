@@ -1,6 +1,10 @@
 from model.contact import Contact
+from selenium.common.exceptions import NoSuchElementException
 
 class ContactHelper:
+    contacts_cache = None
+    table_header_map = None
+
     def __init__(self, app):
         self.app = app
 
@@ -15,6 +19,7 @@ class ContactHelper:
             contact = Contact(first_name="", last_name="", birthday="", address="",
                  phone="", email="", company="", id=None)
         wd.find_element_by_xpath("//div[@id='content']/form/input[@value='Enter']").click()
+        self.contacts_cache = None
 
         new_contacts_list = self.get_contact_list()
         assert len(old_contacts_list) + 1 == len(new_contacts_list), \
@@ -67,6 +72,7 @@ class ContactHelper:
         self.select_contact_by_index(index)
         wd.find_element_by_xpath("//input[@value = 'Delete']").click()
         self.app.handleAlert("Delete 1 addresses?", "OK")
+        self.contacts_cache = None
 
         contacts_after_del = self.get_contact_list()
         assert len(contacts_before_del)-1 == len(contacts_after_del), \
@@ -91,6 +97,7 @@ class ContactHelper:
         self.open_contact_for_editing(index)
         self.fill_fields(contact)
         wd.find_element_by_xpath("//input[@name = 'update']").click()
+        self.contacts_cache = None
 
         #checking
         new_contacts_list = self.get_contact_list()
@@ -125,19 +132,22 @@ class ContactHelper:
             self.add(Contact("userFirstName", "userLastName"))
 
     def get_contact_list(self):
-        wd = self.app.wd
-        self.app.go_to_main_page(True)
-        contacts_list = []
-        for row in wd.find_elements_by_xpath("//table//tr[@name='entry']"):
-            last_name = row.find_element_by_xpath(".//td[" + str(self.get_column_index("Last name")+1) + "]").text
-            first_name = row.find_element_by_xpath(".//td["+ str(self.get_column_index("First name")+1)+"]").text
-            id = row.find_element_by_xpath(".//input[@type='checkbox']").get_attribute("value")
-            contacts_list.append(Contact(last_name = last_name, first_name = first_name, id = id))
-        print("Contacts list: " + str(contacts_list))
-        return contacts_list
+        if(self.contacts_cache is None):
+            wd = self.app.wd
+            self.app.go_to_main_page(True)
+            self.contacts_cache = []
+            for row in wd.find_elements_by_xpath("//table//tr[@name='entry']"):
+                last_name = row.find_element_by_xpath(".//td[" + str(self.get_column_index("Last name")+1) + "]").text
+                first_name = row.find_element_by_xpath(".//td["+ str(self.get_column_index("First name")+1)+"]").text
+                id = row.find_element_by_xpath(".//input[@type='checkbox']").get_attribute("value")
+                self.contacts_cache.append(Contact(last_name = last_name, first_name = first_name, id = id))
+            print("Contacts list: " + str(self.contacts_cache))
+        else:
+            self.app.go_to_main_page(True)
+        return list(self.contacts_cache)
 
     def get_column_index(self, column_name):
-        wd = self.app.wd
+        """wd = self.app.wd
         self.app.go_to_main_page(True)
         index = -1
         columns = wd.find_elements_by_xpath("//table//th")
@@ -145,4 +155,20 @@ class ContactHelper:
             if columns[i].text == column_name:
                 index = i
                 break
-        return index
+        return index"""
+        self.init_table_header_map()
+        return self.table_header_map[column_name]
+
+
+    def init_table_header_map(self):
+        if(self.table_header_map is None):
+            wd = self.app.wd
+            self.table_header_map = {}
+            columns = wd.find_elements_by_xpath("//table//th")
+            for i in range(len(columns)):
+                try:
+                    text = columns[i].find_element_by_xpath(".//*[text()]").text
+                    self.table_header_map[text] = i
+                except NoSuchElementException:
+                    pass
+

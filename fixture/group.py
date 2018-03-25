@@ -1,6 +1,8 @@
 from model.group import Group
 
 class GroupHelper:
+    group_cache = None
+
     def __init__(self, app):
         self.app = app
 
@@ -17,9 +19,11 @@ class GroupHelper:
         self.fill_fields(group)
         # submit group creating
         wd.find_element_by_name("submit").click()
-
+        self.return_to_groups_page()
+        self.group_cache = None
+        #checking
+        assert len(old_groups) + 1 == self.get_groups_number()
         new_groups = self.get_group_list()
-        assert len(old_groups) + 1 == len(new_groups)
         old_groups.append(group)
         assert sorted(old_groups, key=Group.id_or_max) == sorted(new_groups, key=Group.id_or_max)
 
@@ -36,12 +40,15 @@ class GroupHelper:
         wd.find_element_by_xpath("//input[@name = 'edit']").click()
         self.fill_fields(group)
         wd.find_element_by_xpath("//input[@name = 'update']").click()
+        self.return_to_groups_page()
+        self.group_cache = None
 
         #checking
+        assert len(old_groups) == self.get_groups_number()
         new_groups = self.get_group_list()
-        assert len(old_groups) == len(new_groups)
         old_groups[index-1] = group
         assert sorted(old_groups, key=Group.id_or_max) == sorted(new_groups, key=Group.id_or_max)
+
 
     def select_group_by_index(self, index):
         wd = self.app.wd
@@ -67,9 +74,13 @@ class GroupHelper:
         wd = self.app.wd
         groups_before_del = self.get_group_list()
 
+        #deleting
         self.select_group_by_index(index)
         wd.find_element_by_xpath("//input[@value = 'Delete group(s)']").click()
+        self.return_to_groups_page()
+        self.group_cache = None
 
+        #checking
         groups_after_del = self.get_group_list()
         assert len(groups_after_del) == len(groups_before_del)-1, "Group wasn't deleted"
         del groups_before_del[index - 1]
@@ -94,12 +105,13 @@ class GroupHelper:
             self.open_groups_page()
 
     def get_group_list(self):
-        wd = self.app.wd
-        self.open_groups_page()
-        group_list = []
-        for element in wd.find_elements_by_xpath("//span[@class = 'group']"):
-            text = element.text
-            id = element.find_element_by_xpath(".//input[@type='checkbox']").get_attribute("value")
-            group_list.append(Group(name=text, id=id))
-        print("Groups list: " + str(group_list))
-        return group_list
+        if self.group_cache is None:
+            wd = self.app.wd
+            self.open_groups_page()
+            self.group_cache = []
+            for element in wd.find_elements_by_xpath("//span[@class = 'group']"):
+                text = element.text
+                id = element.find_element_by_xpath(".//input[@type='checkbox']").get_attribute("value")
+                self.group_cache.append(Group(name=text, id=id))
+            print("Groups list: " + str(self.group_cache))
+        return list(self.group_cache)
