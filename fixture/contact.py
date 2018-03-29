@@ -10,27 +10,11 @@ class ContactHelper:
 
     def add(self, contact):
         wd = self.app.wd
-        old_contacts_list = self.get_contact_list()
 
         wd.find_element_by_link_text("add new").click()
-        if contact is not None:
-            self.fill_fields(contact)
-        else:
-            contact = Contact(first_name="", last_name="", birthday="", address="",
-                 phone="", email="", company="", id=None)
+        self.fill_fields(contact)
         wd.find_element_by_xpath("//div[@id='content']/form/input[@value='Enter']").click()
         self.contacts_cache = None
-
-        new_contacts_list = self.get_contact_list()
-        assert len(old_contacts_list) + 1 == len(new_contacts_list), \
-            "Contact wasn't added"
-        old_contacts_list.append(contact)
-        assert sorted(old_contacts_list, key=Contact.id_or_max) == sorted(new_contacts_list, key=Contact.id_or_max), \
-            "Contact wasn't added"
-
-    def add_empty(self):
-        wd = self.app.wd
-        self.add(None)
 
     def fill_fields(self, contact):
         wd = self.app.wd
@@ -67,19 +51,11 @@ class ContactHelper:
 
     def delete(self, index):
         wd = self.app.wd
-        contacts_before_del = self.get_contact_list()
 
         self.select_contact_by_index(index)
         wd.find_element_by_xpath("//input[@value = 'Delete']").click()
         self.app.handleAlert("Delete 1 addresses?", "OK")
         self.contacts_cache = None
-
-        contacts_after_del = self.get_contact_list()
-        assert len(contacts_before_del)-1 == len(contacts_after_del), \
-            "Number of contacts wasn't changed after deletion"
-        del contacts_before_del[index - 1]
-        assert sorted(contacts_before_del, key=Contact.id_or_max) == sorted(contacts_after_del, key=Contact.id_or_max), \
-            "Number of contacts wasn't changed after deletion"
 
     def select_contact_by_index(self, index):
         wd = self.app.wd
@@ -89,23 +65,12 @@ class ContactHelper:
 
     def update(self, index, contact):
         wd = self.app.wd
-        #preparation
-        old_contacts_list = self.get_contact_list()
-        contact.id = old_contacts_list[index - 1].id
 
         #updating
         self.open_contact_for_editing(index)
         self.fill_fields(contact)
         wd.find_element_by_xpath("//input[@name = 'update']").click()
         self.contacts_cache = None
-
-        #checking
-        new_contacts_list = self.get_contact_list()
-        assert len(old_contacts_list) == len(new_contacts_list), \
-            "Number of contacts changed after contact updating"
-        old_contacts_list[index - 1] = contact
-        assert sorted(old_contacts_list, key=Contact.id_or_max) == sorted(new_contacts_list, key=Contact.id_or_max), \
-            "Number of contacts changed after contact updating"
 
     def open_contact_for_editing(self, index):
         wd = self.app.wd

@@ -12,7 +12,6 @@ class GroupHelper:
 
     def create(self, group):
         wd = self.app.wd
-        old_groups = self.get_group_list()
 
         wd.find_element_by_name("new").click()
         wd.find_element_by_name("group_name").click()
@@ -21,19 +20,10 @@ class GroupHelper:
         wd.find_element_by_name("submit").click()
         self.return_to_groups_page()
         self.group_cache = None
-        #checking
-        assert len(old_groups) + 1 == self.get_groups_number()
-        new_groups = self.get_group_list()
-        old_groups.append(group)
-        assert sorted(old_groups, key=Group.id_or_max) == sorted(new_groups, key=Group.id_or_max)
 
     def update(self, index, group):
         wd = self.app.wd
         self.open_groups_page()
-
-        #preparation
-        old_groups = self.get_group_list()
-        group.id = old_groups[index-1].id
 
         #updating
         self.select_group_by_index(index)
@@ -42,12 +32,6 @@ class GroupHelper:
         wd.find_element_by_xpath("//input[@name = 'update']").click()
         self.return_to_groups_page()
         self.group_cache = None
-
-        #checking
-        assert len(old_groups) == self.get_groups_number()
-        new_groups = self.get_group_list()
-        old_groups[index-1] = group
-        assert sorted(old_groups, key=Group.id_or_max) == sorted(new_groups, key=Group.id_or_max)
 
 
     def select_group_by_index(self, index):
@@ -72,19 +56,10 @@ class GroupHelper:
 
     def delete(self, index):
         wd = self.app.wd
-        groups_before_del = self.get_group_list()
-
-        #deleting
         self.select_group_by_index(index)
         wd.find_element_by_xpath("//input[@value = 'Delete group(s)']").click()
         self.return_to_groups_page()
         self.group_cache = None
-
-        #checking
-        groups_after_del = self.get_group_list()
-        assert len(groups_after_del) == len(groups_before_del)-1, "Group wasn't deleted"
-        del groups_before_del[index - 1]
-        assert sorted(groups_before_del, key=Group.id_or_max) == sorted(groups_after_del, key=Group.id_or_max)
 
     def open_groups_page(self):
         # open groups page
