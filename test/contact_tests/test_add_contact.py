@@ -3,8 +3,9 @@ from model.contact import Contact
 
 def test_test_add_contact(app):
     old_contacts_list = app.contact.get_contact_list()
-    contact = Contact("userName1", "lastName1", "13-November-1974",
-                            "address1", "247-18-45", "email@email.com", "companyName21")
+    contact = Contact(first_name="userName1", last_name="lastName1", birthday="13-November-1974",
+                     address="address1", mobile_phone="247-18-45", email="email@email.com",
+                     company="companyName21")
     app.contact.add(contact)
 
     new_contacts_list = app.contact.get_contact_list()

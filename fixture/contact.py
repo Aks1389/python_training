@@ -1,5 +1,6 @@
 from model.contact import Contact
 from selenium.common.exceptions import NoSuchElementException
+import re
 
 class ContactHelper:
     contacts_cache = None
@@ -34,7 +35,7 @@ class ContactHelper:
 
         self.set_field_value(wd.find_element_by_name("company"), contact.company)
         self.set_field_value(wd.find_element_by_name("address"), contact.address)
-        self.set_field_value(wd.find_element_by_name("mobile"), contact.phone)
+        self.set_field_value(wd.find_element_by_name("mobile"), contact.mobile_phone)
         self.set_field_value(wd.find_element_by_name("email"), contact.email)
 
     def checkIfContactAdded(self):
@@ -78,6 +79,12 @@ class ContactHelper:
         assert len(contact_list) >= index, "Number of contacts is less than index"
         wd.find_element_by_xpath("//table//tr["+str(index+1)+"]//a[contains(@href, 'edit.php')]").click()
 
+    def open_contact_for_view(self, index):
+        wd = self.app.wd
+        contact_list = wd.find_elements_by_xpath("//table//tr[@name='entry']")
+        assert len(contact_list) >= index, "Number of contacts is less than index"
+        wd.find_element_by_xpath("//table//tr[" + str(index + 1) + "]//a[contains(@href, 'view.php')]").click()
+
     def set_field_value(self, web_element, field_obj):
         wd = self.app.wd
         if field_obj is not None:
@@ -102,14 +109,32 @@ class ContactHelper:
             self.app.go_to_main_page(True)
             self.contacts_cache = []
             for row in wd.find_elements_by_xpath("//table//tr[@name='entry']"):
-                last_name = row.find_element_by_xpath(".//td[" + str(self.get_column_index("Last name")+1) + "]").text
-                first_name = row.find_element_by_xpath(".//td["+ str(self.get_column_index("First name")+1)+"]").text
-                id = row.find_element_by_xpath(".//input[@type='checkbox']").get_attribute("value")
-                self.contacts_cache.append(Contact(last_name = last_name, first_name = first_name, id = id))
+                self.contacts_cache.append(self.collect_info_about_contact(row))
             print("Contacts list: " + str(self.contacts_cache))
         else:
             self.app.go_to_main_page(True)
         return list(self.contacts_cache)
+
+    def collect_info_about_contact(self, table_row):
+        col_index = str(self.get_column_index("Last name") + 1)
+        last_name = table_row.find_element_by_xpath(".//td[" + col_index + "]").text
+
+        col_index = str(self.get_column_index("First name") + 1)
+        first_name = table_row.find_element_by_xpath(".//td[" + col_index + "]").text
+
+        col_index = str(self.get_column_index("Address") + 1)
+        address = table_row.find_element_by_xpath(".//td[" + col_index + "]").text
+
+        col_index = str(self.get_column_index("All e-mail") + 1)
+        all_emails = list(map(lambda el: el.text, table_row.find_elements_by_xpath(".//td[" + col_index + "]/a")))
+
+        id = table_row.find_element_by_xpath(".//input[@type='checkbox']").get_attribute("value")
+
+        col_index = str(self.get_column_index("All phones") + 1)
+        all_phones = table_row.find_element_by_xpath(".//td[" + col_index + "]").text
+
+        return Contact(last_name=last_name, first_name=first_name, id=id,
+                        address=address, all_emails=all_emails, all_phones=all_phones)
 
     def get_column_index(self, column_name):
         """wd = self.app.wd
@@ -137,3 +162,39 @@ class ContactHelper:
                 except NoSuchElementException:
                     pass
 
+    def get_contact_from_home_page(self, index):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        row = wd.find_element_by_xpath("//table//tr[@name='entry']["+str(index)+"]")
+        return self.collect_info_about_contact(row)
+
+    def get_contact_from_edit_page(self, index):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        self.open_contact_for_editing(index)
+        first_name = wd.find_element_by_name("firstname").get_attribute("value")
+        last_name = wd.find_element_by_name("lastname").get_attribute("value")
+        address = wd.find_element_by_name("address").get_attribute("value")
+        id = wd.find_element_by_name("id").get_attribute("value")
+        all_emails = list(map(lambda el: el.get_attribute("value"),
+                                wd.find_elements_by_xpath("//input[contains(@name, 'email')]")))
+        home_phone = wd.find_element_by_name("home").get_attribute("value")
+        mobile_phone = wd.find_element_by_name("mobile").get_attribute("value")
+        work_phone = wd.find_element_by_name("work").get_attribute("value")
+        secondary_phone = wd.find_element_by_name("phone2").get_attribute("value")
+        return Contact(first_name=first_name, last_name=last_name, id=id,
+                       home_phone=home_phone, mobile_phone=mobile_phone,
+                       work_phone=work_phone, secondary_phone=secondary_phone,
+                       address=address, all_emails=all_emails)
+
+    def get_contact_from_view_page(self, index):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        self.open_contact_for_view(index)
+        text = wd.find_element_by_id("content").text
+        home_phone = re.search("H: (.*)", text).group(1)
+        mobile_phone = re.search("M: (.*)", text).group(1)
+        work_phone = re.search("W: (.*)", text).group(1)
+        secondary_phone = re.search("P: (.*)", text).group(1)
+        return Contact(home_phone=home_phone, mobile_phone=mobile_phone,
+                       work_phone=work_phone, secondary_phone=secondary_phone)

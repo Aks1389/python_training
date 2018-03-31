@@ -29,8 +29,11 @@ class SessionHelper:
 
     def is_logged_in_as_user(self, username):
         wd = self.app.wd
-        user_name_element = wd.find_element_by_xpath("//form[@class = 'header']/b")
-        return user_name_element.text == "("+username+")"
+        return self.get_logged_user() == username
+
+    def get_logged_user(self):
+        wd = self.app.wd
+        return wd.find_element_by_xpath("//form[@class = 'header']/b").text[1:-1]
 
     def ensure_login(self, username, password):
         dw = self.app.wd
