@@ -11,11 +11,11 @@ class Application:
         if browser == "firefox":
             self.wd = webdriver.Firefox(capabilities={"marionette": False})
         elif browser == "chrome":
-            self.wd = webdriver.Chrome
+            self.wd = webdriver.Chrome()
         elif browser == "opera":
-            self.wd = webdriver.Opera
+            self.wd = webdriver.Opera()
         elif browser == "edge":
-            self.wd = webdriver.Edge
+            self.wd = webdriver.Edge()
         else :
             raise ValueError("Unrecognized browser %s", browser)
         self.session = SessionHelper(self)
