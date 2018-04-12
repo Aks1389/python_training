@@ -7,7 +7,7 @@ from fixture.contact import ContactHelper
 from fixture.group import GroupHelper
 
 class Application:
-    def __init__(self, browser):
+    def __init__(self, browser, base_url):
         if browser == "firefox":
             self.wd = webdriver.Firefox(capabilities={"marionette": False})
         elif browser == "chrome":
