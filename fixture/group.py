@@ -12,7 +12,7 @@ class GroupHelper:
 
     def create(self, group):
         wd = self.app.wd
-
+        self.open_groups_page()
         wd.find_element_by_name("new").click()
         wd.find_element_by_name("group_name").click()
         self.fill_fields(group)
@@ -40,6 +40,10 @@ class GroupHelper:
         assert (len(groups_list) >= index), "Number of groups is less than index"
         groups_list[index-1].click()
 
+    def select_group_by_id(self, id):
+        wd = self.app.wd
+        wd.find_element_by_xpath("//input[@type = 'checkbox' and @value = '%s']" % id).click()
+
     def fill_fields(self, group):
         # fill group form
         wd = self.app.wd
@@ -57,6 +61,13 @@ class GroupHelper:
     def delete(self, index):
         wd = self.app.wd
         self.select_group_by_index(index)
+        wd.find_element_by_xpath("//input[@value = 'Delete group(s)']").click()
+        self.return_to_groups_page()
+        self.group_cache = None
+
+    def delete_by_id(self, id):
+        wd = self.app.wd
+        self.select_group_by_id(id)
         wd.find_element_by_xpath("//input[@value = 'Delete group(s)']").click()
         self.return_to_groups_page()
         self.group_cache = None
