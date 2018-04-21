@@ -1,12 +1,13 @@
 from fixture.orm import ORMFixture
 import pymysql.cursors
+from model.group import Group
 
 db = ORMFixture(host="127.0.0.1", name="addressbook", user="root", password="")
 
 try:
-    items = db.get_group_list()
-    for item in items:
+    l = db.get_contacts_in_group(Group(id="96"))
+    for item in l:
         print(item)
-    print(len(items))
+    print(len(l))
 finally:
     pass
