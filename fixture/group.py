@@ -101,3 +101,15 @@ class GroupHelper:
                 self.group_cache.append(Group(name=text, id=id))
             print("Groups list: " + str(self.group_cache))
         return list(self.group_cache)
+
+    def update_by_id(self, id, new_group_info):
+        wd = self.app.wd
+        self.open_groups_page()
+
+        # updating
+        self.select_group_by_id(id)
+        wd.find_element_by_xpath("//input[@name = 'edit']").click()
+        self.fill_fields(new_group_info)
+        wd.find_element_by_xpath("//input[@name = 'update']").click()
+        self.return_to_groups_page()
+        self.group_cache = None

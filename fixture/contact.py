@@ -52,7 +52,6 @@ class ContactHelper:
 
     def delete(self, index):
         wd = self.app.wd
-
         self.select_contact_by_index(index)
         wd.find_element_by_xpath("//input[@value = 'Delete']").click()
         self.app.handleAlert("Delete 1 addresses?", "OK")
@@ -63,6 +62,13 @@ class ContactHelper:
         contact_list = wd.find_elements_by_xpath("//table//tr[@name='entry']")
         assert len(contact_list) >= index , "Number of contacts is less than index"
         contact_list[index-1].find_element_by_xpath(".//input[@name = 'selected[]']").click()
+
+    def select_contact_by_name(self, firstname, lastname):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        check_box = wd.find_element_by_xpath(
+            "//tbody//tr//input[@title = 'Select (%s %s)']" % (firstname, lastname))
+        check_box.click()
 
     def update(self, index, contact):
         wd = self.app.wd
@@ -78,6 +84,12 @@ class ContactHelper:
         contact_list = wd.find_elements_by_xpath("//table//tr[@name='entry']")
         assert len(contact_list) >= index, "Number of contacts is less than index"
         wd.find_element_by_xpath("//table//tr["+str(index+1)+"]//a[contains(@href, 'edit.php')]").click()
+
+    def open_contact_for_editing_by_name(self, firstname, lastname):
+        wd = self.app.wd
+        edit_btn = wd.find_element_by_xpath(
+            "//tbody//input[@title = 'Select (%s %s)']//ancestor::tr//a[contains(@href, 'edit.php')]" % (firstname, lastname))
+        edit_btn.click()
 
     def open_contact_for_view(self, index):
         wd = self.app.wd
@@ -198,3 +210,18 @@ class ContactHelper:
         secondary_phone = re.search("P: (.*)", text).group(1)
         return Contact(home_phone=home_phone, mobile_phone=mobile_phone,
                        work_phone=work_phone, secondary_phone=secondary_phone)
+
+    def delete_contact(self, contact):
+        wd = self.app.wd
+        self.select_contact_by_name(contact.first_name, contact.last_name)
+        wd.find_element_by_xpath("//input[@value = 'Delete']").click()
+        self.app.handleAlert("Delete 1 addresses?", "OK")
+        self.contacts_cache = None
+
+    def update_contact(self, contact, new_contact_info):
+        wd = self.app.wd
+        # updating
+        self.open_contact_for_editing_by_name(contact.first_name, contact.last_name)
+        self.fill_fields(new_contact_info)
+        wd.find_element_by_xpath("//input[@name = 'update']").click()
+        self.contacts_cache = None

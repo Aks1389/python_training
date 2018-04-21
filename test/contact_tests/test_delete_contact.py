@@ -1,30 +1,18 @@
 # -*- coding: utf-8 -*-
 from model.contact import Contact
-from random import randrange
+import random
 
-"""def test_delete_first_contact(app):
+def test_delete_random_contact(app, db, check_ui):
     app.contact.create_if_absent()
-    contacts_before_del = app.contact.get_contact_list()
+    contacts_before_del = db.get_contact_list()
+    random_contact = random.choice(contacts_before_del)
+    app.contact.delete_contact(random_contact)
 
-    app.contact.delete(1)
-
-    contacts_after_del = app.contact.get_contact_list()
+    contacts_after_del = db.get_contact_list()
     assert len(contacts_before_del) - 1 == len(contacts_after_del), \
         "Number of contacts wasn't changed after deletion"
-    del contacts_before_del[0]
+    contacts_before_del.remove(random_contact)
     assert sorted(contacts_before_del, key=Contact.id_or_max) == sorted(contacts_after_del, key=Contact.id_or_max), \
         "Number of contacts wasn't changed after deletion"
-   """
-def test_delete_random_contact(app):
-    app.contact.create_if_absent()
-    contacts_before_del = app.contact.get_contact_list()
-    random_index = randrange(len(contacts_before_del))+1
-
-    app.contact.delete(random_index)
-
-    contacts_after_del = app.contact.get_contact_list()
-    assert len(contacts_before_del) - 1 == len(contacts_after_del), \
-        "Number of contacts wasn't changed after deletion"
-    del contacts_before_del[random_index-1]
-    assert sorted(contacts_before_del, key=Contact.id_or_max) == sorted(contacts_after_del, key=Contact.id_or_max), \
-        "Number of contacts wasn't changed after deletion"
+    if check_ui:
+        assert sorted(contacts_after_del, key=Contact.id_or_max) == sorted(app.contact.get_contact_list(), key=Contact.id_or_max)
