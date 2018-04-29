@@ -35,7 +35,7 @@ def test_all_contacts_info(app, db):
         assert all_contacts_from_home_page[i].address == all_contacts_from_db[i].address
         assert all_contacts_from_home_page[i].all_phones == \
                format_phones_number_according_to_ui_rules(all_contacts_from_db[i].all_phones)
-        assert compare_emails_lists(all_contacts_from_home_page[i].all_emails, all_contacts_from_db[i].all_emails.split("\n"))
+        assert compare_emails_lists(all_contacts_from_home_page[i].all_emails, all_contacts_from_db[i].all_emails.strip().split("\n"))
 
 def clear(s):
     return re.sub("[() -]", "", s)
