@@ -1,6 +1,7 @@
 import pymysql.cursors
 from model.group import Group
 from model.contact import Contact
+import re
 
 class DbFixture:
 
@@ -39,3 +40,26 @@ class DbFixture:
         finally:
             cursor.close()
         return list
+
+    def get_full_contacts_info(self):
+        list = []
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute("""SELECT id, firstname, lastname, address,
+		                            concat(IF(email='', '', email), 
+                                           IF(email2='', '', concat('\\n', email2)),
+                                           IF(email3='', '', concat('\\n', email3))) as 'emails',
+                                    concat(IF(home='', '', home), 
+                                           IF(mobile='', '', concat('\\n', mobile)),
+                                           IF(work='', '', concat('\\n', work))) as 'phones' 
+                              FROM addressbook WHERE deprecated = '0000-00-00 00:00:00'""")
+            for row in cursor:
+                (id, first_name, last_name, address, emails, phones) = row
+                list.append(Contact(id=str(id), first_name=self.format_str(first_name), last_name=self.format_str(last_name),
+                                    address=address.strip(), all_emails=emails.strip(), all_phones=phones.strip()))
+        finally:
+            cursor.close()
+        return list
+
+    def format_str(self, string):
+        return re.sub("\s{2,}", " ", string.strip())

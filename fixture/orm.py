@@ -18,8 +18,8 @@ class ORMFixture:
     class ORMContact(db.Entity):
         _table_ = 'addressbook'
         id = PrimaryKey(int, column='id')
-        firstname = Optional(str, column='firstname')
-        lastname = Optional(str, column='lastname')
+        first_name = Optional(str, column='firstname')
+        last_name = Optional(str, column='lastname')
         deprecated = Optional(datetime, column='deprecated')
         groups = Set(lambda : ORMFixture.ORMGroup, table="address_in_groups", column="group_id", reverse="contacts", lazy=True)
 

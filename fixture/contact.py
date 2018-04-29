@@ -180,6 +180,15 @@ class ContactHelper:
         row = wd.find_element_by_xpath("//table//tr[@name='entry']["+str(index)+"]")
         return self.collect_info_about_contact(row)
 
+    def get_all_contacts_from_home_page(self):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        rows = wd.find_elements_by_xpath("//table//tr[@name='entry']")
+        list = []
+        for row in rows:
+            list.append(self.collect_info_about_contact(row))
+        return list
+
     def get_contact_from_edit_page(self, index):
         wd = self.app.wd
         self.app.go_to_main_page(True)
