@@ -61,5 +61,42 @@ class DbFixture:
             cursor.close()
         return list
 
+    def get_group_id(self, group):
+        cursor = self.connection.cursor()
+        id = '-1'
+        try:
+            cursor.execute("SELECT group_id from group_list where group_name='%s' and group_header='%s' and group_footer='%s'"
+                           % (group.name, group.header, group.footer))
+            result = cursor.fetchall()
+            assert cursor.rownumber > 0, "Group[%s] wasn't found in db" % group
+            assert cursor.rownumber < 2, "There was found more the one group by parameters[%s]" % group
+            id = str(result[0][0])
+
+        finally:
+            cursor.close()
+        return id
+
+    def is_contact_in_group(self, contact, group):
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute("""SELECT id, group_id from address_in_groups where id=(
+                                    SELECT id 
+                                    from addressbook 
+                                    where firstname = '%s' and lastname = '%s' and deprecated = '0000-00-00 00:00:00') 
+                              and group_id = (
+                                    SELECT group_id 
+                                    from group_list 
+                                    where group_name = '%s' and group_header = '%s' and group_footer = '%s')""" %
+                           (contact.first_name, contact.last_name, group.name, group.header, group.footer))
+            cursor.fetchall()
+            assert cursor.rowcount > 0, "Contact[%s] is not in the group[%s]" % (contact, group)
+            assert cursor.rowcount < 2, "There was found more than one record. Check sql-query"
+        except AssertionError:
+            return False
+        finally:
+            cursor.close()
+        return True
+
+
     def format_str(self, string):
         return re.sub("\s{2,}", " ", string.strip())

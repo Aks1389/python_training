@@ -234,3 +234,12 @@ class ContactHelper:
         self.fill_fields(new_contact_info)
         wd.find_element_by_xpath("//input[@name = 'update']").click()
         self.contacts_cache = None
+
+    def add_contact_to_group(self, contact, group):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        self.select_contact_by_name(contact.first_name, contact.last_name)
+        web_element = wd.find_element_by_xpath("//select[@name = 'to_group']")
+        self.set_combobox_field_value(web_element, group.name)
+        wd.find_element_by_xpath("//input[@value = 'Add to']").click()
+        self.app.go_to_main_page(True)
