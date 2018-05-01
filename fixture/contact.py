@@ -68,7 +68,8 @@ class ContactHelper:
         self.app.go_to_main_page(True)
         check_box = wd.find_element_by_xpath(
             "//tbody//tr//input[@title = 'Select (%s %s)']" % (firstname, lastname))
-        check_box.click()
+        if not check_box.is_selected():
+            check_box.click()
 
     def update(self, index, contact):
         wd = self.app.wd
@@ -110,8 +111,14 @@ class ContactHelper:
             if not option.is_selected():
                 option.click()
 
+    def display_contact_in_group(self, group_name):
+        wd = self.app.wd
+        web_element = wd.find_element_by_xpath("//select[@name = 'group']")
+        self.set_combobox_field_value(web_element, group_name)
+
     def create_if_absent(self):
         self.app.go_to_main_page(True)
+        self.display_contact_in_group("[all]")
         if self.get_contacts_number() == 0:
             self.add(Contact("userFirstName", "userLastName"))
 
@@ -243,3 +250,19 @@ class ContactHelper:
         self.set_combobox_field_value(web_element, group.name)
         wd.find_element_by_xpath("//input[@value = 'Add to']").click()
         self.app.go_to_main_page(True)
+
+    def remove_from_group(self, contact, group):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        web_element = wd.find_element_by_xpath("//select[@name = 'group']")
+        self.set_combobox_field_value(web_element, group.name)
+        self.select_contact_by_name(contact.first_name, contact.last_name)
+        wd.find_element_by_xpath("//input[@name = 'remove']").click()
+        self.app.go_to_main_page(True)
+
+    def is_contact_in_group(self, contact, group):
+        wd = self.app.wd
+        self.app.go_to_main_page(True)
+        self.display_contact_in_group(group.name)
+        contacts = self.get_contact_list()
+        return contact in contacts

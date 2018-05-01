@@ -89,13 +89,11 @@ class DbFixture:
                                     where group_name = '%s' and group_header = '%s' and group_footer = '%s')""" %
                            (contact.first_name, contact.last_name, group.name, group.header, group.footer))
             cursor.fetchall()
-            assert cursor.rowcount > 0, "Contact[%s] is not in the group[%s]" % (contact, group)
-            assert cursor.rowcount < 2, "There was found more than one record. Check sql-query"
-        except AssertionError:
-            return False
+            return cursor.rowcount == 1
+            #assert cursor.rowcount > 0, "Contact[%s] is not in the group[%s]" % (contact, group)
+            #assert cursor.rowcount < 2, "There was found more than one record. Check sql-query"
         finally:
             cursor.close()
-        return True
 
 
     def format_str(self, string):
